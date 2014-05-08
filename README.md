@@ -16,9 +16,7 @@ package wintools
 import (
 	"io"
 	"testing"
-
 	"github.com/dylanmei/winrmtest"
-	"github.com/mitchellh/packer/packer"
 )
 
 func Test_empty_temp_directory(t *testing.T) {
