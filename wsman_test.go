@@ -12,7 +12,7 @@ import (
 	"github.com/masterzen/xmlpath"
 )
 
-func Test_create_shell(t *testing.T) {
+func Test_creating_a_shell(t *testing.T) {
 	w := &wsman{}
 
 	res := httptest.NewRecorder()
@@ -51,7 +51,7 @@ func Test_create_shell(t *testing.T) {
 	}
 }
 
-func Test_exec_command(t *testing.T) {
+func Test_executing_a_command(t *testing.T) {
 	w := &wsman{}
 	id := w.HandleCommand("echo tacos", func(out, err io.Writer) int {
 		return 0
@@ -87,7 +87,7 @@ func Test_exec_command(t *testing.T) {
 	}
 }
 
-func Test_receive_command(t *testing.T) {
+func Test_receiving_command_results(t *testing.T) {
 	w := &wsman{}
 	id := w.HandleCommand("echo tacos", func(out, err io.Writer) int {
 		out.Write([]byte("tacos"))
@@ -152,7 +152,7 @@ func Test_receive_command(t *testing.T) {
 	}
 }
 
-func Test_delete_shell(t *testing.T) {
+func Test_deleting_a_shell(t *testing.T) {
 	w := &wsman{}
 
 	res := httptest.NewRecorder()
