@@ -6,7 +6,7 @@ An in-progress testing package to compliment the [masterzen/winrm](https://githu
 My primary use-case for this is for [dylanmei/packer-communicator-winrm](https://github.com/dylanmei/packer-communicator-winrm), a [Packer](http://packer.io) communicator plugin for interacting with machines using Windows Remote Management.
 
 ## Example Use
-i
+
 A fictitious "Windows tools" package.
 
 ```
