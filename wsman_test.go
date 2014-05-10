@@ -18,7 +18,15 @@ func Test_create_shell(t *testing.T) {
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "", strings.NewReader(`
 		<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">
-			<a:Action mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Create</a:Action>
+			<env:Header>
+				<a:Action mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Create</a:Action>
+			</env:Header>
+			<env:Body>
+				<rsp:Shell>
+					<rsp:InputStream>stdin</rsp:InputStream>
+					<rsp:OutputStreams>stdout stderr</rsp:OutputStreams>
+				</rsp:Shell>
+			</env:Body>		
 		</env:Envelope>`))
 
 	w.ServeHTTP(res, req)
@@ -141,6 +149,27 @@ func Test_receive_command(t *testing.T) {
 	xpath, _ = xmlpath.CompileWithNamespace("//rsp:CommandState/rsp:ExitCode", soap.GetAllNamespaces())
 	if code, _ := xpath.String(env); code != "0" {
 		t.Errorf("Expected ExitCode=0 but found \"%s\"\n", code)
+	}
+}
+
+func Test_delete_shell(t *testing.T) {
+	w := &wsman{}
+
+	res := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "", strings.NewReader(`
+		<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">
+			<env:Header>
+				<a:Action mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete</a:Action>
+			</env:Header>
+		</env:Envelope>`))
+
+	w.ServeHTTP(res, req)
+	if res.Code != http.StatusOK {
+		t.Errorf("Expected 200 OK but was %d.\n", res.Code)
+	}
+
+	if res.Body.Len() != 0 {
+		t.Errorf("Expected body to be empty but was \"%v\".", res.Body)
 	}
 }
 
