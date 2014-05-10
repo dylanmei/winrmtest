@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/masterzen/winrm/soap"
-	"github.com/masterzen/xmlpath"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/masterzen/winrm/soap"
+	"github.com/masterzen/xmlpath"
 )
 
 type wsman struct {
