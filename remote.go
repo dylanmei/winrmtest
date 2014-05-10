@@ -1,7 +1,6 @@
 package winrmtest
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -29,21 +28,18 @@ func NewRemote() *Remote {
 		service: &wsman{},
 	}
 
-	fmt.Printf("winrmtest listening at %s:%d\n", host, port)
-
 	mux.Handle("/wsman", remote.service)
 	return &remote
 }
 
 func (r *Remote) Close() {
-	fmt.Println("winrmtest closing")
 	r.server.Close()
 }
 
 type CommandFunc func(out, err io.Writer) (exitCode int)
 
 func (r *Remote) CommandFunc(cmd string, f CommandFunc) {
-	r.service.mapCommandTextToFunc(cmd, f)
+	r.service.HandleCommand(cmd, f)
 }
 
 func splitAddr(addr string) (host string, port int, err error) {
