@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/masterzen/winrm/soap"
 	"github.com/masterzen/xmlpath"
@@ -24,14 +25,15 @@ type command struct {
 }
 
 func (w *wsman) HandleCommand(cmd string, f CommandFunc) string {
+	id := newId("cmd")
 	w.commands = append(w.commands,
 		command{
-			id:      "456",
+			id:      id,
 			text:    cmd,
 			handler: f,
 		})
 
-	return "456"
+	return id
 }
 
 func (w *wsman) CommandByText(cmd string) *command {
@@ -107,14 +109,14 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		rw.Write([]byte(fmt.Sprintf(`
 			<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell">
 				<rsp:ReceiveResponse>
-					<rsp:Stream Name="stdout" CommandId="456">%s</rsp:Stream>
-					<rsp:Stream Name="stdout" CommandId="456" End="true"></rsp:Stream>
-					<rsp:Stream Name="stderr" CommandId="456" End="true"></rsp:Stream>
+					<rsp:Stream Name="stdout" CommandId="%s">%s</rsp:Stream>
+					<rsp:Stream Name="stdout" CommandId="%s" End="true"></rsp:Stream>
+					<rsp:Stream Name="stderr" CommandId="%s" End="true"></rsp:Stream>
 					<rsp:CommandState State="http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done">
 						<rsp:ExitCode>%d</rsp:ExitCode>
 					</rsp:CommandState>
 				</rsp:ReceiveResponse>
-			</env:Envelope>`, content, result)))
+			</env:Envelope>`, id, content, id, id, result)))
 
 	} else if strings.HasSuffix(action, "transfer/Delete") {
 		// end of the session
@@ -162,4 +164,8 @@ func readCommandIdFromDesiredStream(env *xmlpath.Node) string {
 
 	id, _ := xpath.String(env)
 	return id
+}
+
+func newId(prefix string) string {
+	return fmt.Sprintf("%s-%d", prefix, uint32(time.Now().UTC().Unix()))
 }
