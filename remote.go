@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
+// Remote respresents a WinRM server
 type Remote struct {
 	Host    string
 	Port    int
@@ -16,6 +18,7 @@ type Remote struct {
 	service *wsman
 }
 
+// NewRemote returns a new initialized Remote
 func NewRemote() *Remote {
 	mux := http.NewServeMux()
 	srv := httptest.NewServer(mux)
@@ -32,14 +35,35 @@ func NewRemote() *Remote {
 	return &remote
 }
 
+// Close closes the WinRM server
 func (r *Remote) Close() {
 	r.server.Close()
 }
 
+// MatcherFunc respresents a function used to match WinRM commands
+type MatcherFunc func(candidate string) bool
+
+// MatchText return a new MatcherFunc based on text matching
+func MatchText(text string) MatcherFunc {
+	return func(candidate string) bool {
+		return text == candidate
+	}
+}
+
+// MatchPattern return a new MatcherFunc based on pattern matching
+func MatchPattern(pattern string) MatcherFunc {
+	r := regexp.MustCompile(pattern)
+	return func(candidate string) bool {
+		return r.MatchString(candidate)
+	}
+}
+
+// CommandFunc respresents a function used to mock WinRM commands
 type CommandFunc func(out, err io.Writer) (exitCode int)
 
-func (r *Remote) CommandFunc(cmd string, f CommandFunc) {
-	r.service.HandleCommand(cmd, f)
+// CommandFunc adds a WinRM command mock function to the WinRM server
+func (r *Remote) CommandFunc(m MatcherFunc, f CommandFunc) {
+	r.service.HandleCommand(m, f)
 }
 
 func splitAddr(addr string) (host string, port int, err error) {

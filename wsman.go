@@ -7,48 +7,47 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/masterzen/winrm/soap"
 	"github.com/masterzen/xmlpath"
+	"github.com/satori/go.uuid"
 )
 
 type wsman struct {
-	commands     []command
+	commands     []*command
 	identitySeed int
 }
 
 type command struct {
 	id      string
-	text    string
+	matcher MatcherFunc
 	handler CommandFunc
 }
 
-func (w *wsman) HandleCommand(cmd string, f CommandFunc) string {
-	id := newId("cmd")
-	w.commands = append(w.commands,
-		command{
-			id:      id,
-			text:    cmd,
-			handler: f,
-		})
+func (w *wsman) HandleCommand(m MatcherFunc, f CommandFunc) string {
+	id := uuid.NewV4().String()
+	w.commands = append(w.commands, &command{
+		id:      id,
+		matcher: m,
+		handler: f,
+	})
 
 	return id
 }
 
 func (w *wsman) CommandByText(cmd string) *command {
 	for _, c := range w.commands {
-		if c.text == cmd {
-			return &c
+		if c.matcher(cmd) {
+			return c
 		}
 	}
 	return nil
 }
 
-func (w *wsman) CommandById(id string) *command {
+func (w *wsman) CommandByID(id string) *command {
 	for _, c := range w.commands {
 		if c.id == id {
-			return &c
+			return c
 		}
 	}
 	return nil
@@ -65,7 +64,8 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	action := readAction(env)
-	if strings.HasSuffix(action, "transfer/Create") {
+	switch {
+	case strings.HasSuffix(action, "transfer/Create"):
 		// create a new shell
 
 		rw.Write([]byte(`
@@ -73,7 +73,7 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 				<rsp:ShellId>123</rsp:ShellId>
 			</env:Envelope>`))
 
-	} else if strings.HasSuffix(action, "shell/Command") {
+	case strings.HasSuffix(action, "shell/Command"):
 		// execute on behalf of the client
 		text := readCommand(env)
 		cmd := w.CommandByText(text)
@@ -89,11 +89,11 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 				<rsp:CommandId>%s</rsp:CommandId>
 			</env:Envelope>`, cmd.id)))
 
-	} else if strings.HasSuffix(action, "shell/Receive") {
+	case strings.HasSuffix(action, "shell/Receive"):
 		// client ready to receive the results
 
-		id := readCommandIdFromDesiredStream(env)
-		cmd := w.CommandById(id)
+		id := readCommandIDFromDesiredStream(env)
+		cmd := w.CommandByID(id)
 
 		if cmd == nil {
 			fmt.Printf("I don't know this command: CommandId=%s\n", id)
@@ -101,8 +101,8 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		stdout := bytes.NewBuffer(make([]byte, 0))
-		stderr := bytes.NewBuffer(make([]byte, 0))
+		stdout := new(bytes.Buffer)
+		stderr := new(bytes.Buffer)
 		result := cmd.handler(stdout, stderr)
 		content := base64.StdEncoding.EncodeToString(stdout.Bytes())
 
@@ -118,10 +118,13 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 				</rsp:ReceiveResponse>
 			</env:Envelope>`, id, content, id, id, result)))
 
-	} else if strings.HasSuffix(action, "transfer/Delete") {
+	case strings.HasSuffix(action, "shell/Signal"):
+		// end of the shell command
+		rw.WriteHeader(http.StatusOK)
+	case strings.HasSuffix(action, "transfer/Delete"):
 		// end of the session
 		rw.WriteHeader(http.StatusOK)
-	} else {
+	default:
 		fmt.Printf("I don't know this action: %s\n", action)
 		rw.WriteHeader(http.StatusInternalServerError)
 	}
@@ -154,7 +157,7 @@ func readCommand(env *xmlpath.Node) string {
 	return command
 }
 
-func readCommandIdFromDesiredStream(env *xmlpath.Node) string {
+func readCommandIDFromDesiredStream(env *xmlpath.Node) string {
 	xpath, err := xmlpath.CompileWithNamespace(
 		"//rsp:DesiredStream/@CommandId", soap.GetAllNamespaces())
 
@@ -164,8 +167,4 @@ func readCommandIdFromDesiredStream(env *xmlpath.Node) string {
 
 	id, _ := xpath.String(env)
 	return id
-}
-
-func newId(prefix string) string {
-	return fmt.Sprintf("%s-%d", prefix, uint32(time.Now().UTC().Unix()))
 }
