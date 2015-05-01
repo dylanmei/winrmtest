@@ -10,6 +10,7 @@ import (
 
 	"github.com/masterzen/winrm/soap"
 	"github.com/masterzen/xmlpath"
+	"github.com/satori/go.uuid"
 )
 
 func Test_creating_a_shell(t *testing.T) {
@@ -102,7 +103,7 @@ func Test_executing_a_regex_command(t *testing.T) {
 			<env:Body>
 				<rsp:CommandLine><rsp:Command>"echo %d >> C:\file.cmd"</rsp:Command></rsp:CommandLine>
 			</env:Body>
-		</env:Envelope>`, newID("something-dynamic"))))
+		</env:Envelope>`, uuid.NewV4().String())))
 
 	w.ServeHTTP(res, req)
 	if res.Code != http.StatusOK {

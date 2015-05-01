@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/masterzen/winrm/soap"
 	"github.com/masterzen/xmlpath"
+	"github.com/satori/go.uuid"
 )
 
 type wsman struct {
@@ -27,7 +27,7 @@ type command struct {
 }
 
 func (w *wsman) HandleCommand(cmd string, regex string, f CommandFunc) string {
-	id := newID("cmd")
+	id := uuid.NewV4().String()
 	w.commands = append(w.commands, &command{
 		id:      id,
 		text:    cmd,
@@ -111,8 +111,8 @@ func (w *wsman) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		stdout := bytes.NewBuffer(make([]byte, 0))
-		stderr := bytes.NewBuffer(make([]byte, 0))
+		stdout := new(bytes.Buffer)
+		stderr := new(bytes.Buffer)
 		result := cmd.handler(stdout, stderr)
 		content := base64.StdEncoding.EncodeToString(stdout.Bytes())
 
@@ -177,8 +177,4 @@ func readCommandIDFromDesiredStream(env *xmlpath.Node) string {
 
 	id, _ := xpath.String(env)
 	return id
-}
-
-func newID(prefix string) string {
-	return fmt.Sprintf("%s-%d", prefix, uint32(time.Now().UTC().Unix()))
 }
