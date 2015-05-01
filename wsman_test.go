@@ -54,7 +54,7 @@ func Test_creating_a_shell(t *testing.T) {
 
 func Test_executing_a_command(t *testing.T) {
 	w := &wsman{}
-	id := w.HandleCommand("echo tacos", "", func(out, err io.Writer) int {
+	id := w.HandleCommand(MatchText("echo tacos"), func(out, err io.Writer) int {
 		return 0
 	})
 
@@ -90,7 +90,7 @@ func Test_executing_a_command(t *testing.T) {
 
 func Test_executing_a_regex_command(t *testing.T) {
 	w := &wsman{}
-	id := w.HandleCommand("", `echo .* >> C:\file.cmd`, func(out, err io.Writer) int {
+	id := w.HandleCommand(MatchPattern(`echo .* >> C:\file.cmd`), func(out, err io.Writer) int {
 		return 0
 	})
 
@@ -126,7 +126,7 @@ func Test_executing_a_regex_command(t *testing.T) {
 
 func Test_receiving_command_results(t *testing.T) {
 	w := &wsman{}
-	id := w.HandleCommand("echo tacos", "", func(out, err io.Writer) int {
+	id := w.HandleCommand(MatchText("echo tacos"), func(out, err io.Writer) int {
 		out.Write([]byte("tacos"))
 		return 0
 	})

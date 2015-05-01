@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -21,17 +20,15 @@ type wsman struct {
 
 type command struct {
 	id      string
-	text    string
-	regex   string
+	matcher MatcherFunc
 	handler CommandFunc
 }
 
-func (w *wsman) HandleCommand(cmd string, regex string, f CommandFunc) string {
+func (w *wsman) HandleCommand(m MatcherFunc, f CommandFunc) string {
 	id := uuid.NewV4().String()
 	w.commands = append(w.commands, &command{
 		id:      id,
-		text:    cmd,
-		regex:   regex,
+		matcher: m,
 		handler: f,
 	})
 
@@ -40,15 +37,8 @@ func (w *wsman) HandleCommand(cmd string, regex string, f CommandFunc) string {
 
 func (w *wsman) CommandByText(cmd string) *command {
 	for _, c := range w.commands {
-		if c.text == cmd {
+		if c.matcher(cmd) {
 			return c
-		}
-
-		if c.regex != "" {
-			re := regexp.MustCompile(c.regex)
-			if re.MatchString(cmd) {
-				return c
-			}
 		}
 	}
 	return nil
