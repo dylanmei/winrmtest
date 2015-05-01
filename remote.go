@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Remote respresents a WinRM server
 type Remote struct {
 	Host    string
 	Port    int
@@ -16,6 +17,7 @@ type Remote struct {
 	service *wsman
 }
 
+// NewRemote returns a new initialized Remote
 func NewRemote() *Remote {
 	mux := http.NewServeMux()
 	srv := httptest.NewServer(mux)
@@ -32,14 +34,17 @@ func NewRemote() *Remote {
 	return &remote
 }
 
+// Close closes the WinRM server
 func (r *Remote) Close() {
 	r.server.Close()
 }
 
+// CommandFunc respresents a function used to mock WinRM commands
 type CommandFunc func(out, err io.Writer) (exitCode int)
 
-func (r *Remote) CommandFunc(cmd string, f CommandFunc) {
-	r.service.HandleCommand(cmd, f)
+// CommandFunc adds a WinRM command mock function to the WinRM server
+func (r *Remote) CommandFunc(cmd string, regex string, f CommandFunc) {
+	r.service.HandleCommand(cmd, regex, f)
 }
 
 func splitAddr(addr string) (host string, port int, err error) {

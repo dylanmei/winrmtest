@@ -26,7 +26,7 @@ func Test_creating_a_shell(t *testing.T) {
 					<rsp:InputStream>stdin</rsp:InputStream>
 					<rsp:OutputStreams>stdout stderr</rsp:OutputStreams>
 				</rsp:Shell>
-			</env:Body>		
+			</env:Body>
 		</env:Envelope>`))
 
 	w.ServeHTTP(res, req)
@@ -83,7 +83,7 @@ func Test_executing_a_command(t *testing.T) {
 
 	result, _ := xpath.String(env)
 	if result != id {
-		t.Error("Expected CommandId=%s but was \"%s\"", id, result)
+		t.Errorf("Expected CommandId=%s but was \"%s\"", id, result)
 	}
 }
 
