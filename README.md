@@ -23,7 +23,7 @@ func Test_empty_temp_directory(t *testing.T) {
 	r := winrmtest.NewRemote()
 	defer r.Close()
 
-	r.CommandFunc("C:\Temp", func(out, err io.Writer) int {
+	r.CommandFunc(wimrmtest.Text("dir C:\Temp"), func(out, err io.Writer) int {
 		out.Write([]byte(` Volume in drive C is Windows 2012 R2
  Volume Serial Number is XXXX-XXXX
 
@@ -44,5 +44,5 @@ File Not Found`))
 		t.Errorf("Expected 0 files but found %d.\n", count)
 	}
 }
-
 ```
+
