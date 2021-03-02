@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	xmlquery "github.com/antchfx/xquery/xml"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 func Test_creating_a_shell(t *testing.T) {
@@ -96,7 +96,7 @@ func Test_executing_a_regex_command(t *testing.T) {
 			<env:Body>
 				<rsp:CommandLine><rsp:Command>"echo %s >> C:\file.cmd"</rsp:Command></rsp:CommandLine>
 			</env:Body>
-		</env:Envelope>`, uuid.NewV4().String())))
+		</env:Envelope>`, uuid.Must(uuid.NewV4()).String())))
 
 	w.ServeHTTP(res, req)
 	if res.Code != http.StatusOK {
