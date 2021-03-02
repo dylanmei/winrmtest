@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/antchfx/xquery/xml"
+	"github.com/antchfx/xmlquery"
 	"github.com/gofrs/uuid"
 )
 

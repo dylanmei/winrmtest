@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	xmlquery "github.com/antchfx/xquery/xml"
+	"github.com/antchfx/xmlquery"
 	"github.com/gofrs/uuid"
 )
 
@@ -17,7 +17,7 @@ func Test_creating_a_shell(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "", strings.NewReader(`
-		<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">
+		<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell">
 			<env:Header>
 				<a:Action mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Create</a:Action>
 			</env:Header>
