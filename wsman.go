@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/antchfx/xquery/xml"
-	"github.com/satori/go.uuid"
+	"github.com/antchfx/xmlquery"
+	"github.com/gofrs/uuid"
 )
 
 type wsman struct {
@@ -24,7 +24,7 @@ type command struct {
 }
 
 func (w *wsman) HandleCommand(m MatcherFunc, f CommandFunc) string {
-	id := uuid.NewV4().String()
+	id := uuid.Must(uuid.NewV4()).String()
 	w.commands = append(w.commands, &command{
 		id:      id,
 		matcher: m,
